@@ -8,4 +8,13 @@ class Commission extends Model
 {
     protected $table = 'commissions';
     public $timestamps = true;
+    
+    protected $fillable = [
+        'customer_id', 'amount', 'type', 'status', 'description'
+    ];
+    
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
 }
