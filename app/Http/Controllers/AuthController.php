@@ -9,6 +9,19 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
+    public function logout()
+{
+    auth()->logout();
+    return response()->json(['message' => 'Berhasil logout']);
+}
+    public function me()
+{
+    // Mengambil data user yang sedang login dari token
+    return response()->json([
+        'status' => 'success',
+        'data' => auth()->user()
+    ]);
+}
     public function register(Request $request)
 {
     $this->validate($request, [

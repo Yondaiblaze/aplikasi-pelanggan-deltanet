@@ -26,11 +26,13 @@ $router->group(['prefix' => 'api'], function () use ($router) {
 
 $router->post('/api/register', 'AuthController@register');
 
+
 // Route API yang butuh login (Token JWT)
 $router->group(['middleware' => 'auth.jwt', 'prefix' => 'api'], function () use ($router) {
 
     // Contoh Route untuk temanmu
     $router->get('/invoices', 'InvoiceController@index');
+    $router->get('/me', 'AuthController@me');
 
     // Temanmu tinggal nambahin route-nya di bawah sini nanti:
     // $router->get('/commissions', 'CommissionController@index');
