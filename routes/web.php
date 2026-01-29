@@ -24,6 +24,8 @@ $router->group(['prefix' => 'api'], function () use ($router) {
     $router->post('/login', 'AuthController@login');
 });
 
+$router->post('/api/register', 'AuthController@register');
+
 // Route API yang butuh login (Token JWT)
 $router->group(['middleware' => 'auth.jwt', 'prefix' => 'api'], function () use ($router) {
 

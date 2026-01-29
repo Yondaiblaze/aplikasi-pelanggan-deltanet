@@ -9,6 +9,22 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
+    public function register(Request $request)
+{
+    $this->validate($request, [
+        'name'    => 'required|string',
+        'contact' => 'required|unique:customers', // Pastikan nomor HP belum terdaftar
+        'email'   => 'required|email|unique:customers',
+    ]);
+
+    $customer = Customer::create([
+        'name'    => $request->name,
+        'contact' => $request->contact,
+        'email'   => $request->email,
+    ]);
+
+    return response()->json(['message' => 'Registrasi berhasil, silakan login via OTP'], 201);
+}
     public function sendOtp(Request $request)
     {
         $contact = $request->input('contact');

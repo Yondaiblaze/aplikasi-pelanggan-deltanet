@@ -74,6 +74,10 @@ $app->routeMiddleware([
     'auth.jwt' => App\Http\Middleware\JwtMiddleware::class, // Satpam buatanmu
 ]);
 
+$app->middleware([
+    App\Http\Middleware\CorsMiddleware::class,
+]);
+
 /*
 |--------------------------------------------------------------------------
 | Load The Application Routes
