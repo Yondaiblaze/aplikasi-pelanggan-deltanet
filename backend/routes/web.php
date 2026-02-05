@@ -1,42 +1,57 @@
 <?php
-
 /** @var \Laravel\Lumen\Routing\Router $router */
-// Tambahkan ini di paling atas file routes/web.php
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
 
-if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    exit;
-}
-/*
-|--------------------------------------------------------------------------
-| Application Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register all of the routes for an application.
-| It is a breeze. Simply tell Lumen the URIs it should respond to
-| and give it the Closure to call when that URI is requested.
-|
-*/
+
+// ... kode route kamu di bawahnya ...
 
 $router->get('/', function () use ($router) {
     return $router->app->version();
 
 }
 );
-
+// Router tentang per login login an
+// Router Autentikasi & OTP (Satu Pintu)
 $router->group(['prefix' => 'api'], function () use ($router) {
-    $router->post('/send-otp', 'AuthController@sendOtp');
-    $router->post('/login', 'AuthController@login');
-    $router->post('/register', 'AuthController@register'); // Diperbaiki (tanpa /api lagi)
-});
 
-// Route API yang butuh login (Token JWT)
-$router->group(['middleware' => 'auth.jwt', 'prefix' => 'api'], function () use ($router) {
-    $router->post('/logout', 'AuthController@logout'); // Dipindahkan ke sini
-    $router->get('/me', 'AuthController@me');
-    $router->get('/invoices', 'InvoiceController@index');
+    // 1. Kirim OTP (biasanya untuk login/lupa password)
+    $router->post('/send-otp', 'OtpController@sendOtp');
+
+    // 2. Login (Hapus 'api/' di depan, karena sudah ada di prefix group)
+    $router->post('/login', 'AuthController@login');
+
+    // 3. Verifikasi OTP
+    $router->post('/verify-otp', 'AuthController@verifyOtp');
+
+    // 4. Registrasi
+    $router->post('/register', 'AuthController@register');
+
+    // 5. Reset Password
+    $router->post('/reset-password', 'AuthController@resetPassword');
+
+
+// --- PROTECTED ROUTES (HARUS LOGIN / PAKAI TOKEN JWT) ---
+    $router->group(['middleware' => 'auth'], function () use ($router) {
+
+        // Profile & Auth Action
+        $router->get('/me', 'AuthController@me');
+        $router->post('/logout', 'AuthController@logout');
+
+        // Fitur Referral (Update kode teman dari Dashboard)
+        $router->post('/update-referral', 'AuthController@updateReferral');
+
+        // Fitur Invoice / Tagihan
+        $router->get('/invoices', 'InvoiceController@index');
+        $router->get('/invoices/{id}', 'InvoiceController@show');
+        $router->post('/invoices/{id}/pay', 'InvoiceController@pay');
+
+        // Fitur Ticket / Pengaduan
+        $router->get('/tickets', 'TicketController@index');
+        $router->post('/tickets', 'TicketController@store');
+
+        // Fitur Komisi
+        $router->get('/commissions', 'CommissionController@index');
+        $router->post('/commissions/withdraw', 'CommissionController@withdraw');
+    });
 });
 
     // Temanmu tinggal nambahin route-nya di bawah sini nanti:

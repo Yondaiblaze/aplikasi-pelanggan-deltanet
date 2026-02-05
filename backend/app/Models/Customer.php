@@ -7,7 +7,6 @@ use Laravel\Lumen\Auth\Authorizable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
-// Tambahkan baris ini
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class Customer extends Model implements AuthenticatableContract, AuthorizableContract, JWTSubject
@@ -16,23 +15,44 @@ class Customer extends Model implements AuthenticatableContract, AuthorizableCon
 
     protected $table = 'customers';
 
+    // WAJIB: Beritahu Laravel kalau primary key-nya bukan 'id'
+    protected $primaryKey = 'customer_id';
+
     protected $fillable = [
-        'name', 'contact', 'otp_code', 'otp_expiry'
+        'name',
+        'contact',
+        'email',
+        'password',
+        'referral_code',
+        'referred_by', // Penting untuk sistem komisi
+        'otp_code',
+        'otp_expiry'
     ];
 
     /**
-     * Tambahkan fungsi ini untuk mendapatkan ID unik user
+     * Identitas JWT
      */
     public function getJWTIdentifier()
     {
         return $this->getKey();
     }
 
-    /**
-     * Tambahkan fungsi ini untuk klaim kustom (bisa dikosongkan)
-     */
     public function getJWTCustomClaims()
     {
         return [];
+    }
+
+    /**
+     * Logic Otomatis saat Create data
+     */
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($customer) {
+            // 1. Generate Kode Referral Unik jika belum ada
+            if (!$customer->referral_code) {
+                $customer->referral_code = 'DELTA' . strtoupper(substr(uniqid(), -5));
+            }
+        });
     }
 }

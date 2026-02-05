@@ -6,7 +6,7 @@ require_once __DIR__.'/../vendor/autoload.php';
     dirname(__DIR__)
 ))->bootstrap();
 
-date_default_timezone_set(env('APP_TIMEZONE', 'UTC'));
+date_default_timezone_set('Asia/Jakarta');
 
 /*
 |--------------------------------------------------------------------------
@@ -22,8 +22,10 @@ $app = new Laravel\Lumen\Application(
 $app->withFacades();
 $app->withEloquent();
 
-// Buat Alias untuk JWTAuth agar bisa dipanggil langsung sebagai 'JWTAuth'
-class_alias(Tymon\JWTAuth\Facades\JWTAuth::class, 'JWTAuth');
+// Buat Alias untuk JWTAuth (Opsional, tapi mempermudah pemanggilan di Controller)
+if (!class_exists('JWTAuth')) {
+    class_alias(Tymon\JWTAuth\Facades\JWTAuth::class, 'JWTAuth');
+}
 
 /*
 |--------------------------------------------------------------------------
@@ -47,9 +49,9 @@ $app->singleton(
 |--------------------------------------------------------------------------
 */
 
-// Daftarkan config sebelum Service Provider agar driver 'jwt' terbaca
-$app->configure('app');
+// Daftarkan config auth agar Lumen tahu cara login-nya pake JWT
 $app->configure('auth');
+$app->configure('jwt'); // Penting untuk konfigurasi token (expire, secret key)
 
 /*
 |--------------------------------------------------------------------------
@@ -60,7 +62,7 @@ $app->configure('auth');
 // Daftarkan Service Provider JWT
 $app->register(Tymon\JWTAuth\Providers\LumenServiceProvider::class);
 
-// Daftarkan AuthServiceProvider bawaan (Sangat Penting untuk Guard 'api')
+// Daftarkan AuthServiceProvider bawaan
 $app->register(App\Providers\AuthServiceProvider::class);
 
 /*
@@ -71,11 +73,12 @@ $app->register(App\Providers\AuthServiceProvider::class);
 
 $app->routeMiddleware([
     'auth'     => App\Http\Middleware\Authenticate::class,
-    'auth.jwt' => App\Http\Middleware\JwtMiddleware::class, // Satpam buatanmu
+    'auth.jwt' => App\Http\Middleware\JwtMiddleware::class, // Satpam pengecek token
 ]);
 
+// Tambahkan Middleware Global (CORS agar Frontend bisa akses API tanpa error)
 $app->middleware([
-    App\Http\Middleware\CorsMiddleware::class,
+    App\Http\Middleware\CorsMiddleware::class
 ]);
 
 /*

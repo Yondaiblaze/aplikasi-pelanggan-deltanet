@@ -8,15 +8,16 @@ return [
 
     'guards' => [
         'api' => [
-            'driver' => 'jwt', // INI HARUS 'jwt'
-            'provider' => 'customers',
+            'driver' => 'jwt', // Menggunakan JWT untuk autentikasi token
+            'provider' => 'users', // Merujuk ke provider 'users' di bawah
         ],
     ],
 
     'providers' => [
-        'customers' => [
+        'users' => [
             'driver' => 'eloquent',
-            'model' => App\Models\Customer::class,
+            // Kita gunakan model User yang sudah kita sinkronkan ke tabel customers tadi
+            'model' => App\Models\User::class,
         ],
     ],
 ];

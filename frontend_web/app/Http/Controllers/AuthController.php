@@ -2,30 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 
 class AuthController extends Controller
 {
-    public function showRegister()
+    /* =======================
+       HELPER: BIAR FORMAT HP SAMA (WAJIB ADA)
+    ======================= */
+    private function formatPhone($countryCode, $phone)
     {
-        return view('auth.register');
+        $cleanPhone = ltrim($phone, '0');
+        $fullPhone = $countryCode . $cleanPhone;
+        return str_starts_with($fullPhone, '+') ? $fullPhone : '+' . $fullPhone;
     }
 
-    public function register(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'nomor' => 'required|numeric|digits_between:10,15',
-            'password' => 'required|string|min:8',
-        ]);
-
-        // Simulasi registrasi berhasil (tidak simpan ke database)
-        return redirect()->route('register')->with('success', 'Registrasi berhasil!');
-    }
-
+    /* =======================
+       LOGIN (GABUNGAN LOGIKA API + UI BARU)
+    ======================= */
     public function showLogin()
     {
         return view('auth.login');
@@ -33,73 +27,82 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
+        // Sesuaikan: Frontend baru mungkin pakai name='phone' atau name='nomor'
+        $phoneInput = $request->phone ?? $request->nomor;
+        $fullPhone = $this->formatPhone($request->country_code ?? '+62', $phoneInput);
+
+        $response = Http::post('http://127.0.0.1:8000/api/login', [
+            'contact'  => $fullPhone,
+            'password' => $request->password,
         ]);
 
-        // Simulasi login berhasil (tidak cek database)
-        return redirect()->route('dashboard');
+        if ($response->successful()) {
+            session([
+                'otp_phone'   => $fullPhone,
+                'remember_me' => $request->has('remember')
+            ]);
+            // Redirect sesuai route tim frontend (otp.verify atau otp.form)
+            return redirect()->route('otp.verify')->with('success', 'Password benar! Masukkan kode OTP.');
+        }
+
+        return back()->withErrors(['error' => 'Nomor HP atau Password salah.']);
     }
 
+    /* =======================
+       REGISTER (DENGAN LOGIKA REFERRAL ID)
+    ======================= */
+    public function showRegister()
+    {
+        return view('auth.register');
+    }
+
+    public function register(Request $request)
+    {
+        // Sesuaikan nama field dari tim frontend baru (misal: 'nomor')
+        $phoneInput = $request->nomor ?? $request->phone;
+        $fullPhone = $this->formatPhone($request->country_code ?? '+62', $phoneInput);
+
+        $response = Http::post('http://127.0.0.1:8000/api/register', [
+            'name'          => $request->name,
+            'contact'       => $fullPhone,
+            'password'      => $request->password,
+            'referred_by'   => $request->referred_by, // Tetap tangkap kode referral
+        ]);
+
+        if ($response->successful()) {
+            $data = $response->json();
+
+            // Simpan TOKEN asli dari backend agar tidak dianggap simulasi
+            session([
+                'user_logged_in' => true,
+                'user_token'     => $data['token'],
+                'user_data'      => $data['user'],
+                'user_name'      => $data['user']['name']
+            ]);
+
+            return redirect()->route('dashboard')
+                ->with('success', 'Registrasi berhasil! Selamat datang di DeltaNet.');
+        }
+
+        return back()->withErrors(['error' => 'Gagal daftar: ' . ($response->json()['message'] ?? 'Terjadi kesalahan')]);
+    }
+
+    /* =======================
+       LOGOUT
+    ======================= */
     public function logout()
     {
-        Auth::logout();
-        return redirect()->route('login');
+        session()->flush();
+        return redirect()->route('login')->with('success', 'Logout berhasil!');
     }
 
+    /* =======================
+       FORGOT PASSWORD (LOGIKA API)
+    ======================= */
     public function showForgotPassword()
     {
-        return view('auth.forgot-password');
+        return view('auth.forgot');
     }
 
-    public function forgotPassword(Request $request)
-    {
-        $request->validate(['whatsapp' => 'required|numeric|digits_between:10,15']);
-        
-        // Simulasi kirim WhatsApp (dalam implementasi nyata gunakan WhatsApp API)
-        return redirect()->route('otp.show')->with(['success' => 'Kode OTP telah dikirim ke WhatsApp Anda.', 'whatsapp' => $request->whatsapp]);
-    }
-
-    public function dashboard()
-    {
-        return view('dashboard');
-    }
-
-    public function showOtp()
-    {
-        return view('auth.otp');
-    }
-
-    public function verifyOtp(Request $request)
-    {
-        $otp = $request->otp1 . $request->otp2 . $request->otp3 . $request->otp4 . $request->otp5 . $request->otp6;
-        
-        // Simulasi verifikasi OTP (dalam implementasi nyata cek dengan database/cache)
-        if ($otp === '123456') {
-            return redirect()->route('password.new')->with('success', 'OTP berhasil diverifikasi.');
-        }
-        
-        return back()->withErrors(['otp' => 'Kode OTP tidak valid.']);
-    }
-
-    public function showNewPassword()
-    {
-        return view('auth.new-password');
-    }
-
-    public function updatePassword(Request $request)
-    {
-        $request->validate([
-            'password' => 'required|string|min:8|confirmed',
-        ]);
-
-        // Simulasi update password berhasil
-        return redirect()->route('login')->with('success', 'Password berhasil diubah. Silakan login dengan password baru.');
-    }
-
-    public function tagihan()
-    {
-        return view('tagihan');
-    }
+    // ... Fungsi forgotPassword & updatePassword harus disesuaikan ke API Backend nantinya
 }

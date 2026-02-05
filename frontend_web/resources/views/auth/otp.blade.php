@@ -5,141 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verifikasi OTP - DeltaNet</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        
-        .otp-container {
-            background-color: #e0e0e0;
-            padding: 40px;
-            border-radius: 10px;
-            width: 400px;
-            text-align: center;
-        }
-        
-        .logo {
-            margin-bottom: 30px;
-            padding: 10px 20px;
-            border: 2px solid #3b82f6;
-            border-radius: 5px;
-            display: inline-block;
-        }
-        
-        .logo h1 {
-            color: #1e3a8a;
-            font-size: 20px;
-            font-weight: bold;
-        }
-        
-        .logo span {
-            color: #f59e0b;
-        }
-        
-        .info-text {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        
-        .phone-display {
-            background-color: #6b7280;
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-        
-        .otp-label {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 10px;
-            text-align: left;
-        }
-        
-        .otp-inputs {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .otp-input {
-            width: 50px;
-            height: 50px;
-            border: none;
-            border-radius: 5px;
-            background-color: white;
-            text-align: center;
-            font-size: 18px;
-            font-weight: bold;
-        }
-        
-        .verify-btn {
-            width: 100%;
-            padding: 12px;
-            background-color: #3b82f6;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        
-        .verify-btn:hover {
-            background-color: #2563eb;
-        }
-        
-        .success-message {
-            background-color: #d1fae5;
-            color: #065f46;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-        
-        .error-message {
-            background-color: #fee2e2;
-            color: #dc2626;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background-color: #f5f5f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .otp-container { background-color: #e0e0e0; padding: 40px; border-radius: 10px; width: 400px; text-align: center; }
+        .logo { margin-bottom: 30px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .logo img { height: 40px; width: auto; }
+        .logo h1 { color: #1e3a8a; font-size: 24px; font-weight: bold; }
+        .otp-info { margin-bottom: 30px; color: #666; }
+        .otp-info h2 { color: #333; margin-bottom: 10px; }
+        .otp-inputs { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; }
+        .otp-input { width: 45px; height: 50px; text-align: center; font-size: 20px; border: 2px solid #ddd; border-radius: 8px; background: white; }
+        .otp-input:focus { border-color: #3b82f6; outline: none; }
+        .verify-btn { width: 100%; padding: 12px; background-color: #3b82f6; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-bottom: 20px; }
+        .verify-btn:hover { background-color: #2563eb; }
+        .resend-section { color: #666; font-size: 14px; }
+        .resend-btn { color: #3b82f6; text-decoration: none; cursor: pointer; }
+        .timer { color: #f59e0b; font-weight: bold; }
+        .error-message { background-color: #fee2e2; color: #dc2626; padding: 10px; border-radius: 5px; margin-bottom: 20px; }
     </style>
 </head>
 <body>
     <div class="otp-container">
         <div class="logo">
+            <img src="{{ asset('deltanet-logo.png') }}" alt="DeltaNet Logo">
             <h1>Delta<span>Net</span></h1>
         </div>
-        
-        <div class="info-text">
-            Kode OTP telah dikirim ke nomor WhatsApp Anda
+
+        <div class="otp-info">
+            <h2>Verifikasi OTP</h2>
+            <p>Kode OTP telah dikirim ke nomor</p>
+            {{-- Mengambil nomor asli dari session, jika tidak ada tampilkan teks bantuan --}}
+            <p><strong>{{ session('otp_phone') ?? 'Nomor tidak terdeteksi' }}</strong></p>
         </div>
-        
-        <div class="phone-display">
-            +62 {{ session('whatsapp', '8xxxxxxxxxx') }}
-        </div>
-        
-        @if(session('success'))
-            <div class="success-message">
-                {{ session('success') }}
-            </div>
-        @endif
-        
+
         @if($errors->any())
             <div class="error-message">
                 @foreach($errors->all() as $error)
@@ -147,38 +45,74 @@
                 @endforeach
             </div>
         @endif
-        
+
         <form action="{{ route('otp.verify') }}" method="POST">
             @csrf
-            
-            <div class="otp-label">Masukkan Kode OTP:</div>
-            
             <div class="otp-inputs">
-                <input type="text" class="otp-input" name="otp1" maxlength="1" pattern="[0-9]" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, ''); moveToNext(this, 'otp2')" required>
-                <input type="text" class="otp-input" name="otp2" maxlength="1" pattern="[0-9]" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, ''); moveToNext(this, 'otp3')" required>
-                <input type="text" class="otp-input" name="otp3" maxlength="1" pattern="[0-9]" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, ''); moveToNext(this, 'otp4')" required>
-                <input type="text" class="otp-input" name="otp4" maxlength="1" pattern="[0-9]" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, ''); moveToNext(this, 'otp5')" required>
-                <input type="text" class="otp-input" name="otp5" maxlength="1" pattern="[0-9]" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, ''); moveToNext(this, 'otp6')" required>
-                <input type="text" class="otp-input" name="otp6" maxlength="1" pattern="[0-9]" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
+                {{-- Menggunakan array otp[] agar mudah digabung di Controller dengan implode('', $request->otp) --}}
+                <input type="text" class="otp-input" maxlength="1" name="otp[]" required autofocus>
+                <input type="text" class="otp-input" maxlength="1" name="otp[]" required>
+                <input type="text" class="otp-input" maxlength="1" name="otp[]" required>
+                <input type="text" class="otp-input" maxlength="1" name="otp[]" required>
+                <input type="text" class="otp-input" maxlength="1" name="otp[]" required>
+                <input type="text" class="otp-input" maxlength="1" name="otp[]" required>
             </div>
-            
-            <button type="submit" class="verify-btn">Verifikasi</button>
+
+            <button type="submit" class="verify-btn">Verifikasi OTP</button>
         </form>
-        
-        <div style="margin-top: 20px; text-align: center;">
-            <p style="color: #666; font-size: 14px;"><a href="{{ route('forgot') }}" style="color: #3b82f6; text-decoration: none;">Kirim Ulang OTP</a></p>
+
+        <div class="resend-section">
+            <p id="timer-text">Tidak menerima kode? <span class="timer" id="timer">60</span>s</p>
+            <a href="#" class="resend-btn" id="resend-btn" style="display: none;">Kirim Ulang OTP</a>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <a href="{{ route('login') }}" style="color: #666; text-decoration: none; font-size: 14px;">← Kembali ke Login</a>
         </div>
     </div>
-    
+
     <script>
-        function moveToNext(current, nextFieldId) {
-            if (current.value.length >= current.maxLength) {
-                const nextField = document.getElementsByName(nextFieldId)[0];
-                if (nextField) {
-                    nextField.focus();
+        const otpInputs = document.querySelectorAll('.otp-input');
+
+        otpInputs.forEach((input, index) => {
+            // Auto focus next
+            input.addEventListener('input', function() {
+                if (this.value.length === 1 && index < otpInputs.length - 1) {
+                    otpInputs[index + 1].focus();
                 }
+            });
+
+            // Handle backspace
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Backspace' && this.value === '' && index > 0) {
+                    otpInputs[index - 1].focus();
+                }
+            });
+
+            // Pastikan hanya angka
+            input.addEventListener('keypress', function(e) {
+                if (!/[0-9]/.test(e.key)) {
+                    e.preventDefault();
+                }
+            });
+        });
+
+        // Timer Logic
+        let timeLeft = 60;
+        const timerSpan = document.getElementById('timer');
+        const timerText = document.getElementById('timer-text');
+        const resendBtn = document.getElementById('resend-btn');
+
+        const countdown = setInterval(() => {
+            timeLeft--;
+            timerSpan.textContent = timeLeft;
+
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                timerText.style.display = 'none';
+                resendBtn.style.display = 'inline';
             }
-        }
+        }, 1000);
     </script>
 </body>
 </html>
