@@ -17,7 +17,7 @@ class Customer extends Model implements AuthenticatableContract, AuthorizableCon
     protected $table = 'customers';
 
     protected $fillable = [
-        'name', 'contact', 'otp_code', 'otp_expiry'
+        'name', 'contact', 'otp_code', 'otp_expiry', 'referral_code'
     ];
 
     /**
@@ -34,5 +34,20 @@ class Customer extends Model implements AuthenticatableContract, AuthorizableCon
     public function getJWTCustomClaims()
     {
         return [];
+    }
+    
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
+    
+    public function commissions()
+    {
+        return $this->hasMany(Commission::class);
+    }
+    
+    public function tickets()
+    {
+        return $this->hasMany(HelpdeskTicket::class);
     }
 }
