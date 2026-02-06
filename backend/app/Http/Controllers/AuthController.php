@@ -183,4 +183,22 @@ private function generateReferralCode()
         auth()->logout();
         return response()->json(['message' => 'Berhasil logout']);
     }
+
+    public function forgotPasswordAPI(Request $request)
+{
+    $customer = Customer::where('contact', $request->contact)->first();
+
+    if ($customer) {
+        // Update OTP baru di database
+        $customer->update([
+            'otp_code'   => rand(111111, 999999),
+            'otp_expiry' => Carbon::now()->addMinutes(5)
+        ]);
+
+        // Di sini nanti tempat menaruh kode pengiriman WhatsApp asli
+        return response()->json(['message' => 'OTP dikirim!'], 200);
+    }
+
+    return response()->json(['message' => 'Nomor tidak ditemukan'], 404);
+}
 }

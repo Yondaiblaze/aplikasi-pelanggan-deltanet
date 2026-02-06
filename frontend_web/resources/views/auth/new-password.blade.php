@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Password Baru - DeltaNet</title>
     <style>
         * {
@@ -26,6 +27,7 @@
             border-radius: 10px;
             width: 400px;
             text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         .logo {
@@ -35,7 +37,7 @@
             justify-content: center;
             gap: 10px;
         }
-        
+
         .logo img {
             height: 40px;
             width: auto;
@@ -55,6 +57,7 @@
             color: #555;
             font-size: 14px;
             margin-bottom: 25px;
+            line-height: 1.4;
         }
 
         .form-group {
@@ -67,6 +70,7 @@
             margin-bottom: 6px;
             color: #444;
             font-size: 14px;
+            font-weight: 600;
         }
 
         .form-group input {
@@ -75,6 +79,11 @@
             border: none;
             border-radius: 5px;
             font-size: 14px;
+            background-color: white;
+        }
+
+        .form-group input:focus {
+            outline: 2px solid #3b82f6;
         }
 
         .save-btn {
@@ -85,8 +94,10 @@
             border: none;
             border-radius: 5px;
             font-size: 16px;
+            font-weight: bold;
             cursor: pointer;
             margin-top: 10px;
+            transition: background 0.3s;
         }
 
         .save-btn:hover {
@@ -99,6 +110,7 @@
             padding: 10px;
             border-radius: 5px;
             margin-bottom: 20px;
+            font-size: 14px;
         }
 
         .error-message {
@@ -108,6 +120,7 @@
             border-radius: 5px;
             margin-bottom: 20px;
             text-align: left;
+            font-size: 13px;
         }
     </style>
 </head>
@@ -119,15 +132,18 @@
         </div>
 
         <div class="info-text">
-            Silakan buat password baru untuk akun Anda
+            <strong>Verifikasi Berhasil!</strong><br>
+            Silakan buat password baru yang kuat untuk akun Anda.
         </div>
 
+        {{-- Tampilkan Pesan Sukses --}}
         @if(session('success'))
             <div class="success-message">
                 {{ session('success') }}
             </div>
         @endif
 
+        {{-- Tampilkan Error Validasi (Misal: Password kurang dari 8 karakter) --}}
         @if($errors->any())
             <div class="error-message">
                 @foreach($errors->all() as $error)
@@ -139,8 +155,10 @@
         <form action="{{ route('password.update') }}" method="POST">
             @csrf
 
-            <!-- Token reset password -->
-            <input type="hidden" name="token" value="{{ $token ?? '' }}">
+            {{-- Token ini sangat penting untuk keamanan proses reset --}}
+            <input type="hidden" name="token" value="{{ $token ?? session('reset_token') }}">
+            {{-- Kita juga kirimkan nomor HP/kontak agar backend tahu siapa yang diupdate --}}
+            <input type="hidden" name="contact" value="{{ session('otp_phone') }}">
 
             <div class="form-group">
                 <label for="password">Password Baru</label>
@@ -150,6 +168,7 @@
                     name="password"
                     placeholder="Minimal 8 karakter"
                     required
+                    autofocus
                 >
             </div>
 
@@ -165,9 +184,15 @@
             </div>
 
             <button type="submit" class="save-btn">
-                Simpan Password
+                Simpan Password Baru
             </button>
         </form>
+
+        <div style="margin-top: 20px; text-align: center;">
+            <a href="{{ route('login') }}" style="color: #666; text-decoration: none; font-size: 13px;">
+                Batal dan kembali ke Login
+            </a>
+        </div>
     </div>
 </body>
 </html>

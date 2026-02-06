@@ -4,73 +4,65 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
 {
     /**
-     * Helper untuk mengambil data user.
-     * Kita prioritaskan data dari SESSION agar tidak terlalu sering menembak API.
+     * Helper untuk memanggil API Backend dengan Token JWT
      */
-    private function getUserData()
+    private function apiRequest($method, $endpoint, $data = [])
     {
-        // 1. Ambil token dari session
-        $token = session('user_token');
-        if (!$token) return null;
-
-        // 2. Coba ambil data user yang sudah disimpan di session (jika ada)
-        // Ini mencegah redirect berulang jika API sedang sibuk
-        if (session()->has('user_data')) {
-            return session('user_data');
-        }
-
-        // 3. Jika di session tidak ada, baru tembak API Backend Lumen
-        try {
-            $response = Http::withToken($token)
-                            ->timeout(5) // Beri batas waktu agar tidak loading selamanya
-                            ->get('http://127.0.0.1:8000/api/me');
-
-            if ($response->successful()) {
-                $userData = $response->json();
-                // Simpan ke session agar request berikutnya lebih cepat
-                session(['user_data' => $userData]);
-                return $userData;
-            }
-        } catch (\Exception $e) {
-            Log::error("Gagal koneksi ke Backend: " . $e->getMessage());
-        }
-
-        return null;
+        $token = session('user_token'); // Mengambil token hasil login/regis tadi
+        return Http::withToken($token)->$method("http://127.0.0.1:8000/api/{$endpoint}", $data);
     }
 
     public function index()
     {
-        // Debugging: Jika masih error, hapus tanda komentar baris di bawah ini untuk melihat isi session
-        // dd(session()->all());
-
-        $user = $this->getUserData();
-
-        if (!$user) {
-            // HANYA hapus session jika memang token benar-benar tidak ada
-            if (!session()->has('user_token')) {
-                return redirect()->route('login')->withErrors(['error' => 'Silakan login terlebih dahulu.']);
-            }
-
-            // Jika token ada tapi API gagal, jangan langsung login ulang,
-            // cukup tampilkan error tanpa menghapus session (mungkin server backend mati)
-            return redirect()->route('login')->withErrors(['error' => 'Gagal mengambil data profil dari server.']);
-        }
-
-        return view('dashboard', compact('user'));
+        // Contoh: Mengambil ringkasan data untuk dashboard (opsional)
+        // Jika belum ada API-nya di backend, biarkan view() saja dulu.
+        return view('dashboard.dashboard');
     }
 
-    // --- SISA METHOD LAINNYA ---
-    // Gunakan logika yang sama: ambil dari getUserData()
-    public function profil() {
-        $user = $this->getUserData();
-        if (!$user) return redirect()->route('login');
+    public function profil()
+    {
+        // Mengambil data profil terbaru dari Backend agar sinkron
+        $response = $this->apiRequest('get', 'user/profile');
+        $user = $response->successful() ? $response->json() : session('user_data');
+
         return view('profil.profil', compact('user'));
     }
 
-    // ... (method lainnya tetap sama namun akan lebih stabil karena getUserData sudah diperbaiki)
+    public function referral()
+    {
+        // LOGIKA PENTING: Mengambil daftar bawahan (contoh: Yondai untuk Daiva)
+        // Kita asumsikan ada endpoint di backend: api/user/referrals
+        $response = $this->apiRequest('get', 'user/referrals');
+        $referrals = $response->successful() ? $response->json()['data'] : [];
+
+        // Ambil juga data user untuk menampilkan kode referral milik sendiri
+        $user = session('user_data');
+
+        return view('referral.referral', compact('referrals', 'user'));
+    }
+
+    /* --- Fungsi Statis Tetap Dipertahankan Sesuai Update Frontend --- */
+
+    public function paket() { return view('paket.paket'); }
+    public function tagihan() { return view('tagihan.tagihan'); }
+    public function tiket() { return view('tiket.tiket'); }
+    public function buatTiket() { return view('tiket.buat'); }
+    public function editTiket($id) { return view('tiket.edit', compact('id')); }
+    public function komisi() { return view('komisi.komisi'); }
+    public function pengaturan() { return view('pengaturan.pengaturan'); }
+    public function trackingDetail() { return view('tracking.detail'); }
+
+    public function simpanTiket()
+    {
+        return redirect()->route('tiket.index')->with('success', 'Tiket berhasil dibuat!');
+    }
+
+    public function updateTiket($id)
+    {
+        return redirect()->route('tiket.index')->with('success', 'Tiket berhasil diupdate!');
+    }
 }

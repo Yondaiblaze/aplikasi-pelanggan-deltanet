@@ -2,48 +2,49 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
+    // WAJIB: Kasih tahu Laravel kalau model ini pakai tabel app_customers
+    protected $table = 'app_customers';
+
     /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
+     * Daftarkan kolom yang boleh diisi (Mass Assignable)
      */
     protected $fillable = [
         'name',
-        'email',
-        'phone',
+        'contact',    // Pakai 'contact' sesuai database, bukan 'phone'
         'password',
+        'referral_code',
+        'referral_id', // Tambahkan ini agar sistem referral jalan
+        'otp_code',
+        'otp_expiry'
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
+     * Relasi untuk melihat siapa pengajaknya (Parent)
      */
-    protected function casts(): array
+    public function inviter()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return $this->belongsTo(User::class, 'referral_id');
+    }
+
+    /**
+     * Relasi untuk melihat siapa saja yang diajak (Children)
+     * Contoh: Daiva punya banyak bawahan (Yondai, dll)
+     */
+    public function referrals()
+    {
+        return $this->hasMany(User::class, 'referral_id');
     }
 }

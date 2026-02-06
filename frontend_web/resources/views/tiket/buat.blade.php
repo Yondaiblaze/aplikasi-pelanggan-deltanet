@@ -149,11 +149,11 @@
     .form-row {
         grid-template-columns: 1fr;
     }
-    
+
     .form-actions {
         flex-direction: column;
     }
-    
+
     .form-card {
         padding: 20px;
     }
@@ -165,17 +165,17 @@
 
 <div class="page-title"><i class="fas fa-plus-circle"></i> Buat Tiket Baru</div>
 <div class="breadcrumb">
-    <span>Dashboard</span> 
-    <span class="breadcrumb-separator">›</span> 
+    <span>Dashboard</span>
+    <span class="breadcrumb-separator">›</span>
     <a href="{{ route('tiket') }}" style="color: #3b82f6;">Tiket</a>
-    <span class="breadcrumb-separator">›</span> 
+    <span class="breadcrumb-separator">›</span>
     <span>Buat Tiket</span>
 </div>
 
 <div class="form-card">
     <form action="{{ route('tiket.simpan') }}" method="POST">
         @csrf
-        
+
         <div class="form-group">
             <label class="form-label">Subjek Tiket</label>
             <input type="text" name="subjek" class="form-input" placeholder="Masukkan subjek tiket..." required>

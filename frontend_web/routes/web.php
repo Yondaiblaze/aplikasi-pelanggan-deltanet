@@ -5,26 +5,27 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OtpController;
 
-/* =======================
-    AUTH & LANDING
-======================= */
+/*
+|--------------------------------------------------------------------------
+| Web Routes - DeltaNet Project
+|--------------------------------------------------------------------------
+*/
+
+/* ============================================================
+    AUTH ROUTES (Login, Register, OTP, Password)
+   ============================================================ */
+
 Route::get('/', [AuthController::class, 'showLogin'])->name('home');
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'login']);
 
-/* REGISTER */
+/* REGISTER (TANPA OTP) */
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 
-/* LOGIN OTP FLOW */
-// 1. User input nomor & password
+/* LOGIN OTP */
 Route::post('/login/send-otp', [OtpController::class, 'sendOtp'])->name('login.send-otp');
-
-// 2. Tampilkan form input kode OTP
-Route::get('/verify-otp', [OtpController::class, 'showOtpForm'])->name('otp.verify'); // <-- Ubah name jadi otp.verify agar sinkron
-
-// 3. Proses verifikasi kode ke Lumen
-Route::post('/verify-otp', [OtpController::class, 'verifyOtp'])->name('otp.verify.post'); // <-- Tambahkan .post
+Route::get('/otp', [OtpController::class, 'showOtpForm'])->name('otp.form');
+Route::post('/otp/verify', [OtpController::class, 'verifyOtp'])->name('otp.verify');
 
 /* LOGOUT */
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -35,21 +36,40 @@ Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name
 Route::get('/password-baru', [AuthController::class, 'showNewPassword'])->name('password.new');
 Route::post('/password-baru', [AuthController::class, 'updatePassword'])->name('password.update');
 
-/* =======================
-    DASHBOARD (PROTECTED)
-======================= */
-// Sebaiknya tambahkan middleware 'auth' nanti agar orang tidak bisa tembus dashboard tanpa login
-Route::middleware(['auth.custom'])->group(function () {
+
+/* ============================================================
+    DASHBOARD & USER PANEL (Requires Auth)
+   ============================================================ */
+
+Route::middleware(['auth'])->group(function () {
+
+    // Main Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Paket & Layanan
     Route::get('/paket', [DashboardController::class, 'paket'])->name('paket');
+
+    // Profil User
     Route::get('/profil', [DashboardController::class, 'profil'])->name('profil');
+
+    // Sistem Tagihan & Pembayaran
     Route::get('/tagihan', [DashboardController::class, 'tagihan'])->name('tagihan');
-    Route::get('/tiket', [DashboardController::class, 'tiket'])->name('tiket');
-    Route::get('/tiket/buat', [DashboardController::class, 'buatTiket'])->name('tiket.buat');
-    Route::get('/tiket/edit/{id}', [DashboardController::class, 'editTiket'])->name('tiket.edit');
-    Route::post('/tiket/simpan', [DashboardController::class, 'simpanTiket'])->name('tiket.simpan');
-    Route::post('/tiket/update/{id}', [DashboardController::class, 'updateTiket'])->name('tiket.update');
+
+    // Sistem Tiket Bantuan (CRUD)
+    Route::prefix('tiket')->name('tiket.')->group(function () {
+        Route::get('/', [DashboardController::class, 'tiket'])->name('index');
+        Route::get('/buat', [DashboardController::class, 'buatTiket'])->name('buat');
+        Route::get('/edit/{id}', [DashboardController::class, 'editTiket'])->name('edit');
+        Route::post('/simpan', [DashboardController::class, 'simpanTiket'])->name('simpan');
+        Route::post('/update/{id}', [DashboardController::class, 'updateTiket'])->name('update');
+    });
+
+    // Referral & Komisi
     Route::get('/referral', [DashboardController::class, 'referral'])->name('referral');
     Route::get('/komisi', [DashboardController::class, 'komisi'])->name('komisi');
+
+    // Tracking & Pengaturan
+    Route::get('/tracking/detail', [DashboardController::class, 'trackingDetail'])->name('tracking.detail');
     Route::get('/pengaturan', [DashboardController::class, 'pengaturan'])->name('pengaturan');
+
 });

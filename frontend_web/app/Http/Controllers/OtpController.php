@@ -4,71 +4,78 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Session;
 
 class OtpController extends Controller
 {
-    public function sendOtp(Request $request)
-    {
-        // 1. Membersihkan input nomor telepon
-        $fullPhone = $request->country_code . ltrim($request->phone, '0');
-
-        $response = Http::post('http://127.0.0.1:8000/api/login', [
-            'contact'  => $fullPhone,
-            'password' => $request->password
-        ]);
-
-        if ($response->successful()) {
-            // Simpan nomor di session agar sinkron dengan tampilan di Blade
-            session(['otp_phone' => $fullPhone]);
-
-            return redirect()->route('otp.verify')->with('success', 'Kode OTP telah dikirim!');
-        }
-
-        return back()->withErrors(['phone' => 'Nomor atau Password salah!']);
-    }
-
+    /* =======================
+       MENAMPILKAN FORM OTP
+    ======================= */
     public function showOtpForm()
     {
-        // Proteksi: Jangan biarkan akses langsung ke /otp tanpa proses login
-        if (!session()->has('otp_phone')) {
-            return redirect()->route('login');
+        // Pastikan ada nomor HP di session agar form tidak kosong
+        if (!session('otp_phone')) {
+            return redirect()->route('login')->with('error', 'Sesi berakhir, silakan masukkan nomor HP kembali.');
         }
-
         return view('auth.otp');
     }
 
+    /* =======================
+       VERIFIKASI OTP (REAL API)
+    ======================= */
     public function verifyOtp(Request $request)
     {
-        $otpCode = is_array($request->otp) ? implode('', $request->otp) : $request->otp_code;
+        // Gabungkan 6 input kotak OTP dari frontend menjadi satu string
+        $otpCode = implode('', $request->otp_code ?? []);
         $phone = session('otp_phone');
+        $otpType = session('otp_type', 'login');
 
+        // Kirim verifikasi ke API Backend Lumen
         $response = Http::post('http://127.0.0.1:8000/api/verify-otp', [
             'contact'  => $phone,
-            'otp_code' => $otpCode
+            'otp_code' => $otpCode,
         ]);
 
         if ($response->successful()) {
             $data = $response->json();
 
-            // Simpan token dan data user
-            session([
-                'user_token' => $data['token'],
-                'user_data'  => $data['user']
-            ]);
-
-            // LOGIKA INGAT SAYA (7 HARI)
-            if (session('remember_me')) {
-                // Kita set lifetime session secara dinamis untuk user ini
-                config(['session.lifetime' => 10080]); // 7 hari dalam menit
+            if ($otpType === 'forgot') {
+                return redirect()->route('password.new')->with('success', 'OTP Valid! Silakan buat password baru.');
             }
 
-            // Hapus data sementara
-            session()->forget(['otp_phone', 'remember_me']);
+            // Jika Login atau Register Berhasil
+            session([
+                'user_logged_in' => true,
+                'user_token'     => $data['token'], // Token JWT asli dari backend
+                'user_data'      => $data['user'],
+                'user_name'      => $data['user']['name']
+            ]);
 
-            return redirect()->route('dashboard')->with('success', 'Selamat Datang!');
+            // Hapus session OTP karena sudah tidak dipakai
+            session()->forget(['otp_code', 'otp_phone', 'otp_expires', 'otp_type']);
+
+            return redirect()->route('dashboard')->with('success', 'Verifikasi berhasil! Selamat datang ' . $data['user']['name']);
         }
 
-        return back()->withErrors(['otp_code' => 'Kode OTP salah.']);
+        // Jika OTP Salah (Misal memasukkan 123456 padahal di DB itu 635093)
+        return back()->withErrors(['otp' => 'Kode OTP salah atau sudah kedaluwarsa.']);
+    }
+
+    /* =======================
+       RESEND OTP (KIRIM ULANG)
+    ======================= */
+    public function sendOtp(Request $request)
+    {
+        $phone = $request->phone ?? session('otp_phone');
+
+        // Panggil API Backend untuk generate ulang OTP di DB
+        $response = Http::post('http://127.0.0.1:8000/api/resend-otp', [
+            'contact' => $phone
+        ]);
+
+        if ($response->successful()) {
+            return redirect()->route('otp.form')->with('success', 'Kode OTP baru telah dikirim ke WhatsApp Anda!');
+        }
+
+        return back()->with('error', 'Gagal mengirim ulang OTP.');
     }
 }

@@ -3,7 +3,7 @@
     <div class="sidebar-header">
         <div class="logo">DeltaNet</div>
     </div>
-    
+
     <nav class="sidebar-nav">
         <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
             <span class="nav-icon">📊</span>

@@ -167,11 +167,45 @@ body{
     .main{
         padding:12px;
     }
-    
+
     .header{
         margin:12px;
         padding:12px 16px;
     }
+}
+
+/* Alert Messages */
+.alert {
+    padding: 12px 16px;
+    margin: 10px 16px;
+    border-radius: 8px;
+    position: relative;
+    font-size: 14px;
+    z-index: 1000;
+}
+
+.alert-success {
+    background-color: #d1fae5;
+    color: #065f46;
+    border: 1px solid #86efac;
+}
+
+.alert-error {
+    background-color: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+}
+
+.alert-warning {
+    background-color: #fef3c7;
+    color: #d97706;
+    border: 1px solid #fcd34d;
+}
+
+.alert-info {
+    background-color: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #93c5fd;
 }
 </style>
 @stack('styles')
@@ -183,7 +217,7 @@ body{
     <button class="hamburger" id="hamburger">☰</button>
     <div class="logo">
         <img src="{{ asset('deltanet-logo.png') }}" alt="DeltaNet Logo">
-    
+
     </div>
 
     <div class="profile" id="profileBtn">
@@ -196,7 +230,7 @@ body{
         <a href="{{ route('paket') }}" class="{{ request()->routeIs('paket') ? 'active' : '' }}">Paket Internet</a>
         <a href="{{ route('profil') }}" class="{{ request()->routeIs('profil') ? 'active' : '' }}">Profil Saya</a>
         <a href="{{ route('tagihan') }}" class="{{ request()->routeIs('tagihan') ? 'active' : '' }}">Tagihan</a>
-        <a href="{{ route('tiket') }}" class="{{ request()->routeIs('tiket') ? 'active' : '' }}">Tiket</a>
+        <a href="{{ route('tiket.index') }}" class="{{ request()->routeIs('tiket*') ? 'active' : '' }}">Tiket</a>
         <a href="{{ route('referral') }}" class="{{ request()->routeIs('referral') ? 'active' : '' }}">Referral</a>
         <a href="{{ route('komisi') }}" class="{{ request()->routeIs('komisi') ? 'active' : '' }}">Komisi</a>
     </div>
@@ -243,6 +277,44 @@ document.addEventListener('click', () => {
     menu.classList.remove('active');
     profileMenu.classList.remove('active');
 });
+
+// Global Message Handler
+function showMessage(message, type = 'info') {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `alert alert-${type}`;
+    messageDiv.innerHTML = `
+        <span>${message}</span>
+        <button onclick="this.parentElement.remove()" style="float: right; background: none; border: none; font-size: 18px; cursor: pointer;">&times;</button>
+    `;
+
+    document.body.insertBefore(messageDiv, document.body.firstChild);
+
+    setTimeout(() => {
+        if (messageDiv.parentNode) {
+            messageDiv.remove();
+        }
+    }, 5000);
+}
+
+// 401 Error Handler
+function handle401() {
+    showMessage('Sesi Anda telah berakhir. Silakan login kembali.', 'warning');
+    setTimeout(() => {
+        window.location.href = '/login';
+    }, 2000);
+}
+
+// Fetch wrapper with 401 handling
+window.fetchWithAuth = function(url, options = {}) {
+    return fetch(url, options)
+        .then(response => {
+            if (response.status === 401) {
+                handle401();
+                throw new Error('Unauthorized');
+            }
+            return response;
+        });
+};
 </script>
 @stack('scripts')
 </body>

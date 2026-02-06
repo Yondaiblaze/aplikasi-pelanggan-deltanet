@@ -119,15 +119,15 @@
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
-.btn-primary{ 
+.btn-primary{
     background: linear-gradient(135deg, #3b82f6, #1d4ed8);
     color: white;
 }
-.btn-success{ 
+.btn-success{
     background: linear-gradient(135deg, #10b981, #059669);
     color: white;
 }
-.btn-info{ 
+.btn-info{
     background: linear-gradient(135deg, #06b6d4, #0891b2);
     color: white;
 }
@@ -226,15 +226,15 @@
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
-.btn-view{ 
+.btn-view{
     background: linear-gradient(135deg, #06b6d4, #0891b2);
     color: white;
 }
-.btn-edit{ 
+.btn-edit{
     background: linear-gradient(135deg, #3b82f6, #1d4ed8);
     color: white;
 }
-.btn-delete{ 
+.btn-delete{
     background: linear-gradient(135deg, #ef4444, #dc2626);
     color: white;
 }
@@ -393,11 +393,11 @@
     to { opacity: 1; }
 }
 @keyframes slideIn {
-    from { 
+    from {
         opacity: 0;
         transform: translateY(-20px) scale(0.95);
     }
-    to { 
+    to {
         opacity: 1;
         transform: translateY(0) scale(1);
     }
@@ -436,8 +436,8 @@
 
 <div class="page-title"><i class="fas fa-clipboard-list"></i> Kelola Tiket</div>
 <div class="breadcrumb">
-    <span>Dashboard</span> 
-    <span class="breadcrumb-separator">›</span> 
+    <span>Dashboard</span>
+    <span class="breadcrumb-separator">›</span>
     <span>Tiket</span>
 </div>
 
@@ -459,7 +459,7 @@
             <button class="btn btn-info"><i class="fas fa-download"></i> Export</button>
             <button class="btn btn-secondary"><i class="fas fa-sync-alt"></i> Refresh</button>
             <button class="btn btn-success" onclick="window.location.href='{{ route('tiket.buat') }}'"><i class="fas fa-plus"></i> Tambah Tiket</button>
-            
+
             <div class="search-box">
                 <span class="search-icon"><i class="fas fa-search"></i></span>
                 <input type="text" placeholder="Cari tiket...">
@@ -567,27 +567,27 @@
                     <div class="detail-label">ID Tiket</div>
                     <div class="detail-value" id="modalTicketId"></div>
                 </div>
-                
+
                 <div class="detail-item">
                     <div class="detail-label">Subjek</div>
                     <div class="detail-value" id="modalSubject"></div>
                 </div>
-                
+
                 <div class="detail-item">
                     <div class="detail-label">Tanggal Dibuat</div>
                     <div class="detail-value" id="modalDate"></div>
                 </div>
-                
+
                 <div class="detail-item">
                     <div class="detail-label">Status</div>
                     <div class="detail-value" id="modalStatus"></div>
                 </div>
-                
+
                 <div class="detail-item">
                     <div class="detail-label">Prioritas</div>
                     <div class="detail-value" id="modalPriority"></div>
                 </div>
-                
+
                 <div class="detail-item">
                     <div class="detail-label">Deskripsi Masalah</div>
                     <div class="detail-description" id="modalDescription"></div>

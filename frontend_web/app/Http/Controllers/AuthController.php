@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -58,33 +61,60 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
-        // Sesuaikan nama field dari tim frontend baru (misal: 'nomor')
-        $phoneInput = $request->nomor ?? $request->phone;
-        $fullPhone = $this->formatPhone($request->country_code ?? '+62', $phoneInput);
-
-        $response = Http::post('http://127.0.0.1:8000/api/register', [
-            'name'          => $request->name,
-            'contact'       => $fullPhone,
-            'password'      => $request->password,
-            'referred_by'   => $request->referred_by, // Tetap tangkap kode referral
+        // Validasi field wajib terlebih dahulu
+        $request->validate([
+            'name'     => 'required|string|max:255',
+            'contact'  => 'required|string',
+            'password' => 'required|string|min:6|confirmed',
+        ], [
+            'contact.required' => 'Nomor WhatsApp wajib diisi.',
         ]);
 
-        if ($response->successful()) {
-            $data = $response->json();
-
-            // Simpan TOKEN asli dari backend agar tidak dianggap simulasi
-            session([
-                'user_logged_in' => true,
-                'user_token'     => $data['token'],
-                'user_data'      => $data['user'],
-                'user_name'      => $data['user']['name']
-            ]);
-
-            return redirect()->route('dashboard')
-                ->with('success', 'Registrasi berhasil! Selamat datang di DeltaNet.');
+        // Validasi kode referral jika diisi
+        if ($request->filled('referral_code')) {
+            $referralExists = User::where('referral_code', trim($request->referral_code))->exists();
+            if (!$referralExists) {
+                return back()->withErrors(['referral_code' => 'Maaf, kode referral tersebut tidak terdaftar.'])->withInput();
+            }
         }
 
-        return back()->withErrors(['error' => 'Gagal daftar: ' . ($response->json()['message'] ?? 'Terjadi kesalahan')]);
+        // Format nomor HP dengan country code
+        $fullPhone = $this->formatPhone($request->country_code ?? '+62', $request->contact);
+
+        // Cek apakah nomor HP sudah terdaftar
+        if (User::where('contact', $fullPhone)->exists()) {
+            return back()->withErrors(['contact' => 'Nomor WhatsApp sudah terdaftar.'])->withInput();
+        }
+
+        // Cari pemilik referral berdasarkan kode yang diinput
+        $referrerId = null;
+        if ($request->filled('referral_code')) {
+            $referrer = User::where('referral_code', trim($request->referral_code))->first();
+            $referrerId = $referrer ? $referrer->id : null;
+        }
+
+        // Simpan data
+        $user = User::create([
+            'name'          => $request->name,
+            'contact'       => $fullPhone,
+            'password'      => Hash::make($request->password),
+            'referral_id'   => $referrerId,
+            'referral_code' => strtoupper(Str::random(6)),
+        ]);
+
+        // Set session SEBELUM redirect (PENTING!)
+        session()->put('user_logged_in', true);
+        session()->put('user_token', 'register_token_' . $user->id);
+        session()->put('user_data', [
+            'id' => $user->id,
+            'name' => $user->name,
+            'contact' => $user->contact,
+            'referral_code' => $user->referral_code
+        ]);
+        session()->put('user_name', $user->name);
+        session()->save(); // Paksa save session
+
+        return redirect()->route('dashboard');
     }
 
     /* =======================

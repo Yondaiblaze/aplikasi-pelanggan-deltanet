@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use App\Http\Middleware\AuthCheck; // Pastikan nanti kita buat file ini
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -10,12 +11,13 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware) {
-        // Daftarkan middleware kamu di sini
+    ->withMiddleware(function (Middleware $middleware): void {
+        // Mendaftarkan alias middleware agar bisa dipanggil di routes
         $middleware->alias([
-            'auth.custom' => \App\Http\Middleware\CheckUserToken::class,
+            'isLogin' => \App\Http\Middleware\AuthCustom::class,
+            'auth' => \App\Http\Middleware\AuthCustom::class,
         ]);
     })
-    ->withExceptions(function (Exceptions $exceptions) {
+    ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();

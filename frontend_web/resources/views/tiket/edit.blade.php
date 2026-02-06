@@ -169,11 +169,11 @@
     .form-row {
         grid-template-columns: 1fr;
     }
-    
+
     .form-actions {
         flex-direction: column;
     }
-    
+
     .form-card {
         padding: 20px;
     }
@@ -185,10 +185,10 @@
 
 <div class="page-title"><i class="fas fa-edit"></i> Edit Tiket</div>
 <div class="breadcrumb">
-    <span>Dashboard</span> 
-    <span class="breadcrumb-separator">›</span> 
+    <span>Dashboard</span>
+    <span class="breadcrumb-separator">›</span>
     <a href="{{ route('tiket') }}" style="color: #3b82f6;">Tiket</a>
-    <span class="breadcrumb-separator">›</span> 
+    <span class="breadcrumb-separator">›</span>
     <span>Edit Tiket</span>
 </div>
 
@@ -200,7 +200,7 @@
 
     <form action="{{ route('tiket.update', $id) }}" method="POST">
         @csrf
-        
+
         <div class="form-group">
             <label class="form-label">Subjek Tiket</label>
             <input type="text" name="subjek" class="form-input" value="Masalah koneksi lambat" required>

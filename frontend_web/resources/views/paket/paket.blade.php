@@ -140,20 +140,20 @@
     <!-- Paket Flash 20 Mbps -->
     <div class="package-card">
         <div class="package-name">Flash</div>
-        
+
         <div class="package-speed">
             <span class="speed-label">up to</span>
             <span class="speed-number">20</span>
             <span class="speed-unit">Mbps</span>
         </div>
-        
+
         <div class="package-price">
             <strong>Rp250.000</strong>
             <span>/bulan</span>
         </div>
-        
+
         <hr class="package-divider">
-        
+
         <div class="package-features">
             <div class="feature-item">
                 <i class="fas fa-infinity feature-icon"></i>
@@ -172,27 +172,27 @@
                 <span>24/7 Customer Support</span>
             </div>
         </div>
-        
+
         <button class="subscribe-btn">Langganan Sekarang</button>
     </div>
-    
+
     <!-- Paket Flash 30 Mbps -->
     <div class="package-card">
         <div class="package-name">Flash</div>
-        
+
         <div class="package-speed">
             <span class="speed-label">up to</span>
             <span class="speed-number">30</span>
             <span class="speed-unit">Mbps</span>
         </div>
-        
+
         <div class="package-price">
             <strong>Rp350.000</strong>
             <span>/bulan</span>
         </div>
-        
+
         <hr class="package-divider">
-        
+
         <div class="package-features">
             <div class="feature-item">
                 <i class="fas fa-infinity feature-icon"></i>
@@ -211,27 +211,27 @@
                 <span>24/7 Customer Support</span>
             </div>
         </div>
-        
+
         <button class="subscribe-btn">Langganan Sekarang</button>
     </div>
-    
+
     <!-- Paket Flash 40 Mbps -->
     <div class="package-card">
         <div class="package-name">Flash</div>
-        
+
         <div class="package-speed">
             <span class="speed-label">up to</span>
             <span class="speed-number">40</span>
             <span class="speed-unit">Mbps</span>
         </div>
-        
+
         <div class="package-price">
             <strong>Rp450.000</strong>
             <span>/bulan</span>
         </div>
-        
+
         <hr class="package-divider">
-        
+
         <div class="package-features">
             <div class="feature-item">
                 <i class="fas fa-infinity feature-icon"></i>
@@ -250,7 +250,7 @@
                 <span>24/7 Customer Support</span>
             </div>
         </div>
-        
+
         <button class="subscribe-btn">Langganan Sekarang</button>
     </div>
 </div>

@@ -15,7 +15,7 @@ class AuthCustom
                 return redirect()->route('login');
             }
 
-            // Jika user sudah ada di session, jangan tembak API lagi (biar cepat)
+            // Jika user sudah ada di session, langsung lanjut tanpa validasi API
             if (session()->has('user_data')) {
                 return $next($request);
             }
