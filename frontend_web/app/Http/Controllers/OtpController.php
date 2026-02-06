@@ -24,12 +24,10 @@ class OtpController extends Controller
     ======================= */
     public function verifyOtp(Request $request)
     {
-        // Gabungkan 6 input kotak OTP dari frontend menjadi satu string
         $otpCode = implode('', $request->otp_code ?? []);
         $phone = session('otp_phone');
         $otpType = session('otp_type', 'login');
 
-        // Kirim verifikasi ke API Backend Lumen
         $response = Http::post('http://127.0.0.1:8000/api/verify-otp', [
             'contact'  => $phone,
             'otp_code' => $otpCode,
@@ -42,21 +40,25 @@ class OtpController extends Controller
                 return redirect()->route('password.new')->with('success', 'OTP Valid! Silakan buat password baru.');
             }
 
-            // Jika Login atau Register Berhasil
+            // Set session login
             session([
                 'user_logged_in' => true,
-                'user_token'     => $data['token'], // Token JWT asli dari backend
+                'user_token'     => $data['token'],
                 'user_data'      => $data['user'],
                 'user_name'      => $data['user']['name']
             ]);
 
-            // Hapus session OTP karena sudah tidak dipakai
-            session()->forget(['otp_code', 'otp_phone', 'otp_expires', 'otp_type']);
+            // Jika centang "Ingat Saya", set cookie 7 hari
+            if (session('remember_me')) {
+                cookie()->queue('remember_token', $data['token'], 10080); // 7 hari = 10080 menit
+                cookie()->queue('remember_user', json_encode($data['user']), 10080);
+            }
+
+            session()->forget(['otp_code', 'otp_phone', 'otp_expires', 'otp_type', 'remember_me']);
 
             return redirect()->route('dashboard')->with('success', 'Verifikasi berhasil! Selamat datang ' . $data['user']['name']);
         }
 
-        // Jika OTP Salah (Misal memasukkan 123456 padahal di DB itu 635093)
         return back()->withErrors(['otp' => 'Kode OTP salah atau sudah kedaluwarsa.']);
     }
 

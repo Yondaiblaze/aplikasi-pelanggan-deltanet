@@ -25,12 +25,14 @@ class AuthController extends Controller
     ======================= */
     public function showLogin()
     {
+        if (session('user_token')) {
+            return redirect()->route('dashboard');
+        }
         return view('auth.login');
     }
 
     public function login(Request $request)
     {
-        // Sesuaikan: Frontend baru mungkin pakai name='phone' atau name='nomor'
         $phoneInput = $request->phone ?? $request->nomor;
         $fullPhone = $this->formatPhone($request->country_code ?? '+62', $phoneInput);
 
@@ -42,13 +44,13 @@ class AuthController extends Controller
         if ($response->successful()) {
             session([
                 'otp_phone'   => $fullPhone,
+                'otp_type'    => 'login',
                 'remember_me' => $request->has('remember')
             ]);
-            // Redirect sesuai route tim frontend (otp.verify atau otp.form)
-            return redirect()->route('otp.verify')->with('success', 'Password benar! Masukkan kode OTP.');
+            return redirect()->route('otp.form')->with('success', 'Password benar! Masukkan kode OTP.');
         }
 
-        return back()->withErrors(['error' => 'Nomor HP atau Password salah.']);
+        return back()->withErrors(['error' => 'Nomor HP atau Password salah.'])->withInput();
     }
 
     /* =======================
@@ -56,6 +58,9 @@ class AuthController extends Controller
     ======================= */
     public function showRegister()
     {
+        if (session('user_token')) {
+            return redirect()->route('dashboard');
+        }
         return view('auth.register');
     }
 
@@ -123,6 +128,8 @@ class AuthController extends Controller
     public function logout()
     {
         session()->flush();
+        cookie()->queue(cookie()->forget('remember_token'));
+        cookie()->queue(cookie()->forget('remember_user'));
         return redirect()->route('login')->with('success', 'Logout berhasil!');
     }
 
@@ -134,5 +141,53 @@ class AuthController extends Controller
         return view('auth.forgot');
     }
 
-    // ... Fungsi forgotPassword & updatePassword harus disesuaikan ke API Backend nantinya
+    public function forgotPassword(Request $request)
+    {
+        $fullPhone = $this->formatPhone($request->country_code ?? '+62', $request->whatsapp);
+
+        // Cek apakah nomor terdaftar
+        $user = User::where('contact', $fullPhone)->first();
+        if (!$user) {
+            return back()->withErrors(['whatsapp' => 'Nomor WhatsApp tidak terdaftar.'])->withInput();
+        }
+
+        // Gunakan endpoint resend-otp yang sudah ada (sama seperti login)
+        $response = Http::post('http://127.0.0.1:8000/api/resend-otp', [
+            'contact' => $fullPhone
+        ]);
+
+        session([
+            'otp_phone' => $fullPhone,
+            'otp_type' => 'forgot'
+        ]);
+        
+        return redirect()->route('otp.form')->with('success', 'Kode OTP telah dikirim. Cek kolom otp_code di tabel app_customers.');
+    }
+
+    public function showNewPassword()
+    {
+        if (!session('otp_phone') || session('otp_type') !== 'forgot') {
+            return redirect()->route('login')->withErrors(['error' => 'Sesi tidak valid.']);
+        }
+        return view('auth.new-password');
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+
+        $phone = session('otp_phone');
+        $user = User::where('contact', $phone)->first();
+
+        if (!$user) {
+            return back()->withErrors(['error' => 'User tidak ditemukan.']);
+        }
+
+        $user->update(['password' => Hash::make($request->password)]);
+        session()->forget(['otp_phone', 'otp_type']);
+
+        return redirect()->route('login')->with('success', 'Password berhasil diubah! Silakan login dengan password baru.');
+    }
 }

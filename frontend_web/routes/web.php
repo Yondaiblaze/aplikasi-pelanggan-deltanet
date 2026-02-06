@@ -23,9 +23,10 @@ Route::get('/register', [AuthController::class, 'showRegister'])->name('register
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 
 /* LOGIN OTP */
-Route::post('/login/send-otp', [OtpController::class, 'sendOtp'])->name('login.send-otp');
+Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::get('/otp', [OtpController::class, 'showOtpForm'])->name('otp.form');
 Route::post('/otp/verify', [OtpController::class, 'verifyOtp'])->name('otp.verify');
+Route::post('/otp/resend', [OtpController::class, 'sendOtp'])->name('otp.resend');
 
 /* LOGOUT */
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

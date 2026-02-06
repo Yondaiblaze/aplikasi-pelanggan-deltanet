@@ -96,7 +96,7 @@
             </div>
         @endif
 
-        <form action="{{ route('login.send-otp') }}" method="POST">
+        <form action="{{ route('login.post') }}" method="POST">
             @csrf
 
             <div class="form-group">

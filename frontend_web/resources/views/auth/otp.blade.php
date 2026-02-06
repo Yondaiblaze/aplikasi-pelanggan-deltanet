@@ -109,16 +109,13 @@
 
         <form action="{{ route('otp.verify') }}" method="POST" id="otp-form">
             @csrf
-            {{-- Input tersembunyi untuk menggabungkan 6 digit menjadi 1 string --}}
-            <input type="hidden" name="otp" id="full-otp">
-
             <div class="otp-inputs">
-                <input type="text" class="otp-input" maxlength="1" pattern="\[0-9]*" inputmode="numeric" required>
-                <input type="text" class="otp-input" maxlength="1" pattern="\[0-9]*" inputmode="numeric" required>
-                <input type="text" class="otp-input" maxlength="1" pattern="\[0-9]*" inputmode="numeric" required>
-                <input type="text" class="otp-input" maxlength="1" pattern="\[0-9]*" inputmode="numeric" required>
-                <input type="text" class="otp-input" maxlength="1" pattern="\[0-9]*" inputmode="numeric" required>
-                <input type="text" class="otp-input" maxlength="1" pattern="\[0-9]*" inputmode="numeric" required>
+                <input type="text" name="otp_code[]" class="otp-input" maxlength="1" pattern="[0-9]*" inputmode="numeric" required>
+                <input type="text" name="otp_code[]" class="otp-input" maxlength="1" pattern="[0-9]*" inputmode="numeric" required>
+                <input type="text" name="otp_code[]" class="otp-input" maxlength="1" pattern="[0-9]*" inputmode="numeric" required>
+                <input type="text" name="otp_code[]" class="otp-input" maxlength="1" pattern="[0-9]*" inputmode="numeric" required>
+                <input type="text" name="otp_code[]" class="otp-input" maxlength="1" pattern="[0-9]*" inputmode="numeric" required>
+                <input type="text" name="otp_code[]" class="otp-input" maxlength="1" pattern="[0-9]*" inputmode="numeric" required>
             </div>
 
             <button type="submit" class="verify-btn">Verifikasi Sekarang</button>
@@ -142,13 +139,12 @@
         const fullOtpInput = document.getElementById('full-otp');
         const otpForm = document.getElementById('otp-form');
 
-        // Logic 1: Auto-focus dan Penggabungan Kode
+        // Logic 1: Auto-focus
         otpInputs.forEach((input, index) => {
             input.addEventListener('input', function() {
                 if (this.value.length === 1 && index < otpInputs.length - 1) {
                     otpInputs[index + 1].focus();
                 }
-                combineOtp();
             });
 
             input.addEventListener('keydown', function(e) {
@@ -157,12 +153,6 @@
                 }
             });
         });
-
-        function combineOtp() {
-            let combined = "";
-            otpInputs.forEach(input => combined += input.value);
-            fullOtpInput.value = combined;
-        }
 
         // Logic 2: Timer Countdown
         let timeLeft = 60;

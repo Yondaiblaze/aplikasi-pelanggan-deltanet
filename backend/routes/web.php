@@ -25,7 +25,13 @@ $router->group(['prefix' => 'api'], function () use ($router) {
     // 4. Registrasi
     $router->post('/register', 'AuthController@register');
 
-    // 5. Reset Password
+    // 5. Forgot Password (Generate OTP)
+    $router->post('/forgot-password', 'AuthController@forgotPasswordAPI');
+
+    // 6. Resend OTP
+    $router->post('/resend-otp', 'OtpController@sendOtp');
+
+    // 7. Reset Password
     $router->post('/reset-password', 'AuthController@resetPassword');
 
 
