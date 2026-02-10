@@ -247,7 +247,7 @@
             
             if (value !== numericValue) {
                 warning.style.display = 'block';
-                warning.textContent = numericValue === '' ? 'Nomor telepon tidak boleh dimulai dengan 0!' : 'Nomor telepon hanya boleh berisi angka!';
+                warning.textContent = numericValue === '' ? 'Nomor WhatsApp tidak boleh dimulai dengan 0!' : 'Nomor telepon hanya boleh berisi angka!';
                 e.target.value = numericValue;
             } else {
                 warning.style.display = 'none';

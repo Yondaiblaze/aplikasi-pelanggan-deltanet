@@ -307,7 +307,7 @@ function updateCarousel(transition = true) {
 
   const containerWidth = track.parentElement.offsetWidth;
   const itemWidth = 790;
-  const gap = 20;
+  const gap = 80;
   const centerOffset = (containerWidth - itemWidth) / 2;
   const moveDistance = (currentIndex + 1) * (itemWidth + gap);
   
